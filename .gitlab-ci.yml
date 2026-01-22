@@ -1,0 +1,87 @@
+stages:
+  - validate
+  - test
+
+variables:
+  GIT_DEPTH: 1
+
+# Validate JSON files
+validate-json:
+  stage: validate
+  image: python:3.11-slim
+  script:
+    - pip install --quiet jsonschema
+    - |
+      echo "Validating JSON files..."
+      for file in $(find . -name "*.json" -type f); do
+        echo "Checking $file..."
+        python -m json.tool "$file" > /dev/null || exit 1
+      done
+      echo "All JSON files are valid!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Validate shell scripts
+validate-shell:
+  stage: validate
+  image: koalaman/shellcheck-alpine:stable
+  script:
+    - |
+      echo "Validating shell scripts..."
+      find . -name "*.sh" -type f -exec shellcheck {} \;
+      echo "All shell scripts are valid!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Check markdown files
+validate-markdown:
+  stage: validate
+  image: node:20-alpine
+  script:
+    - npm install -g markdownlint-cli
+    - |
+      echo "Checking markdown files..."
+      markdownlint '**/*.md' --ignore node_modules || true
+      echo "Markdown check complete!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true
+
+# Test plugin structure
+test-structure:
+  stage: test
+  image: alpine:latest
+  script:
+    - |
+      echo "Checking plugin structure..."
+
+      # Required files
+      test -f ".claude-plugin/plugin.json" || { echo "Missing .claude-plugin/plugin.json"; exit 1; }
+      test -f ".lsp.json" || { echo "Missing .lsp.json"; exit 1; }
+      test -f "hooks/hooks.json" || { echo "Missing hooks/hooks.json"; exit 1; }
+      test -f "hooks/check-geode.sh" || { echo "Missing hooks/check-geode.sh"; exit 1; }
+      test -d "commands" || { echo "Missing commands directory"; exit 1; }
+
+      echo "Plugin structure is valid!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Test hook script execution
+test-hooks:
+  stage: test
+  image: bash:5
+  script:
+    - |
+      echo "Testing hook scripts..."
+
+      # Check that hook script is executable syntax
+      bash -n hooks/check-geode.sh || { echo "Hook script has syntax errors"; exit 1; }
+
+      echo "Hook scripts are valid!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

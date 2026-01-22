@@ -1,0 +1,12 @@
+{
+  "gql": {
+    "command": "geode",
+    "args": ["lsp"],
+    "extensionToLanguage": {
+      ".gql": "gql",
+      ".gcypher": "gql",
+      ".cypher": "gql",
+      ".pgql": "gql"
+    }
+  }
+}

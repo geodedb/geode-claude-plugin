@@ -1,0 +1,10 @@
+{
+  "name": "geode-lsp",
+  "description": "Geode GQL/ISO 39075 Language Server for property graph queries",
+  "version": "1.0.0",
+  "author": {
+    "name": "Developer Network"
+  },
+  "repository": "https://gitlab.com/devnw/geode/geode-claude-code-lsp-plugin",
+  "license": "Apache-2.0"
+}
