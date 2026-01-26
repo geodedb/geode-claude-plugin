@@ -3,8 +3,13 @@
 
 # Check if geode is in PATH
 if command -v geode &> /dev/null; then
-    echo "geode LSP is available: $(command -v geode)"
-    geode lsp --help 2>/dev/null | head -1 || true
+    echo "geode is available: $(command -v geode)"
+    echo ""
+    echo "LSP support:"
+    geode lsp --help 2>/dev/null | head -1 || echo "  (not available)"
+    echo ""
+    echo "MCP support:"
+    geode mcp --help 2>/dev/null | head -1 || echo "  (not available)"
     exit 0
 fi
 
@@ -27,15 +32,11 @@ done
 
 echo "Geode is not installed."
 echo ""
-echo "Installation options:"
-echo "  1. Build from source:"
-echo "     git clone https://github.com/geode-db/geode.git"
+echo "Installation:"
+echo "  Build from source:"
+echo "     git clone https://gitlab.com/devnw/codepros/geode/geode.git"
 echo "     cd geode && make build"
 echo "     export PATH=\"\$PWD/zig-out/bin:\$PATH\""
-echo ""
-echo "  2. Install via package manager (when available):"
-echo "     brew install geode  # macOS"
-echo "     cargo install geode # Rust-based installer"
 echo ""
 echo "After installation, ensure 'geode' is in your PATH."
 exit 1

@@ -1,14 +1,16 @@
 ---
-description: Check Geode GQL LSP server status and installation
+description: Check Geode GQL LSP and MCP server status and installation
 ---
 
-# GQL LSP Status Check
+# Geode Status Check
 
-Check if the Geode GQL Language Server is properly installed and accessible.
+Check if the Geode GQL Language Server and MCP server are properly installed and accessible.
 
-Run this command to verify:
+Run these commands to verify:
 ```bash
+geode --version
 geode lsp --help
+geode mcp --help
 ```
 
 If geode is not found, provide installation instructions:
@@ -24,9 +26,11 @@ If geode is not found, provide installation instructions:
    ```bash
    geode --version
    geode lsp --help
+   geode mcp --help
    ```
 
-Report the LSP capabilities:
+## LSP Capabilities
+
 - Hover documentation for GQL keywords, functions, types
 - Code completion with triggers: `.`, `:`, `$`
 - Real-time syntax diagnostics
@@ -34,3 +38,14 @@ Report the LSP capabilities:
 - Document formatting
 
 Supported file extensions: `.gql`, `.gcypher`, `.cypher`, `.pgql`
+
+## MCP Capabilities
+
+The Geode MCP server provides tools for:
+- Query execution and validation
+- Schema introspection
+- Query explanation and optimization
+- Code completions and diagnostics
+- Graph analysis prompts
+
+See `/geode:mcp-status` for detailed MCP tool information.

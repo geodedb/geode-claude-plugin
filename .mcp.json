@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "geode": {
+      "command": "geode",
+      "args": ["mcp", "serve"],
+      "env": {},
+      "description": "Geode GQL graph database - query, schema, and graph analysis tools"
+    }
+  }
+}
