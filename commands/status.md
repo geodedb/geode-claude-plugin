@@ -17,7 +17,7 @@ If geode is not found, provide installation instructions:
 
 1. Build from source:
    ```bash
-   git clone https://github.com/geode-db/geode.git
+   git clone https://gitlab.com/devnw/codepros/geode/geode.git
    cd geode && make build
    export PATH="$PWD/zig-out/bin:$PATH"
    ```

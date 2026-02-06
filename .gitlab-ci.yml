@@ -155,7 +155,7 @@ test-hooks:
 # Uses the geode container image from the main geode project
 test-integration:
   stage: integration
-  image: registry.gitlab.com/devnw/codepros/geode/geode:latest
+  image: geodedb/geode:latest
   script:
     - |
       echo "Testing geode LSP command..."
