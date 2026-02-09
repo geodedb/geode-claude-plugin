@@ -22,12 +22,59 @@ When helping with queries:
    - Type mismatches in WHERE conditions
    - Missing quotes around strings
    - Variable scope issues (variables defined in MATCH used in RETURN)
+   - Transaction not committed (missing COMMIT after BEGIN)
 
 3. **If optimizing**: Suggest improvements:
    - Add indexes for frequently filtered properties
    - Use LIMIT to reduce result sets
    - Filter early with WHERE
    - Use parameters ($param) instead of inline values
+   - Use EXPLAIN to inspect the query plan
+   - Use PROFILE to measure per-operator performance
+
+## Connecting to Geode
+
+Clients connect using a DSN (Data Source Name) connection string:
+
+```
+quic://localhost:3141                            # QUIC transport (recommended)
+grpc://localhost:50051                           # gRPC transport
+quic://user:pass@geode.example.com:3141          # With authentication
+quic://localhost:3141?page_size=500&tls=1         # With options
+```
+
+| Protocol | Default Port | TLS | Notes |
+|----------|-------------|-----|-------|
+| QUIC | 3141 | Required (TLS 1.3) | **Recommended** - high-performance UDP transport |
+| gRPC | 50051 | Optional | Standard HTTP/2 based |
+
+## Transaction Support
+
+Geode supports full ACID transactions with Serializable Snapshot Isolation (SSI):
+
+```gql
+BEGIN
+-- multiple statements here
+COMMIT    -- or ROLLBACK to abort
+```
+
+## Query Analysis
+
+Use `EXPLAIN` to see the logical query plan without executing:
+```gql
+EXPLAIN
+MATCH (p:Person)-[:KNOWS]->(f:Person)
+RETURN p.name, f.name
+```
+
+Use `PROFILE` to execute and get per-operator performance metrics:
+```gql
+PROFILE
+MATCH (p:Person)-[:KNOWS]->(f:Person)
+RETURN p.name, f.name
+```
+
+PROFILE returns metrics including: rows consumed/produced, wall clock time, memory allocation, and spill information per operator.
 
 ## GQL vs Cypher differences
 

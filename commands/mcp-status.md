@@ -73,6 +73,40 @@ geode mcp serve
 # HTTP mode (for remote access)
 geode mcp serve --http --port 8080
 
-# With custom Geode endpoint
-geode mcp serve -e localhost:3141
+# With custom Geode QUIC endpoint
+geode mcp serve -e quic://localhost:3141
+
+# With custom Geode gRPC endpoint
+geode mcp serve -e grpc://localhost:50051
+```
+
+## Transport Configuration
+
+The MCP server connects to a running Geode database server. Geode supports two transport protocols:
+
+| Protocol | Scheme | Default Port | TLS | Description |
+|----------|--------|-------------|-----|-------------|
+| QUIC | `quic://` | 3141 | Required (TLS 1.3) | **Recommended** - high-performance UDP transport |
+| gRPC | `grpc://` | 50051 | Optional | Standard HTTP/2 based |
+
+### Starting the Geode Server
+
+```bash
+# Default: QUIC on port 3141 (TLS auto-generated)
+geode serve
+
+# Explicit QUIC address
+geode serve --listen 0.0.0.0:3141
+
+# Enable both QUIC and gRPC
+geode serve --listen 0.0.0.0:3141 --listen-grpc 0.0.0.0:50051
+
+# With custom TLS certificates
+geode serve --cert /path/to/server.crt --key /path/to/server.key
+
+# With persistent storage
+geode serve --data-dir /var/lib/geode
+
+# With config file
+geode serve --config /path/to/config.yaml
 ```

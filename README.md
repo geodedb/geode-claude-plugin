@@ -48,10 +48,10 @@ Pre-built prompts for common graph operations:
 
 ### Slash Commands
 
-- `/geode:status` - Check LSP and MCP installation and capabilities
+- `/geode:status` - Check LSP and MCP installation, server commands, and transport config
 - `/geode:mcp-status` - Detailed MCP server status and available tools
-- `/geode:examples` - Show GQL query examples for common patterns
-- `/geode:syntax` - Quick reference for GQL syntax and keywords
+- `/geode:examples` - Show GQL query examples (including transactions, EXPLAIN, PROFILE)
+- `/geode:syntax` - Quick reference for GQL syntax, keywords, and wire protocol
 - `/geode:query` - Help write, debug, or optimize GQL queries
 
 ## Supported File Extensions
@@ -87,6 +87,95 @@ claude /plugin install geode@<marketplace-name>
 ```
 
 ## Usage
+
+### Starting the Geode Server
+
+```bash
+# Default: QUIC transport on port 3141 (TLS auto-generated)
+geode serve
+
+# Explicit QUIC listen address
+geode serve --listen 0.0.0.0:3141
+
+# Enable both QUIC and gRPC
+geode serve --listen 0.0.0.0:3141 --listen-grpc 0.0.0.0:50051
+
+# With persistent storage
+geode serve --data-dir /var/lib/geode
+
+# With custom TLS certificates
+geode serve --cert /path/to/server.crt --key /path/to/server.key
+
+# With config file (YAML, TOML, or JSON)
+geode serve --config .geode/config.yaml
+
+# Set log level
+geode serve --log-level debug
+```
+
+### Transport Protocols
+
+| Protocol | Scheme | Default Port | TLS | Description |
+|----------|--------|-------------|-----|-------------|
+| QUIC | `quic://` | 3141 | Required (TLS 1.3) | **Recommended** - high-performance UDP transport |
+| gRPC | `grpc://` | 50051 | Optional | Standard HTTP/2 based |
+
+QUIC is the default and recommended transport. It provides built-in TLS 1.3, stream multiplexing, and 0-RTT connection resumption. gRPC is available as an alternative when HTTP/2 compatibility is needed.
+
+### DSN Connection Strings
+
+All client libraries use a unified DSN (Data Source Name) format:
+
+```
+quic://localhost:3141                            # QUIC (recommended)
+grpc://localhost:50051                           # gRPC
+quic://user:pass@localhost:3141                  # With authentication
+quic://localhost:3141?page_size=500              # With query options
+localhost:3141                                   # Scheme-less (defaults to QUIC)
+```
+
+### Configuration Files
+
+Geode searches for config files in order:
+1. `.geode/config.{yaml|toml|json}` (project config)
+2. `~/.config/geode/config.*` (user config)
+
+CLI flags override config file values, which override defaults.
+
+### Storage
+
+Geode uses MVCC-based persistent storage with:
+- **Write-Ahead Logging (WAL)** for durability
+- **Transparent Data Encryption (TDE)** with KMS support
+- **S3 cloud backup** integration (S3, DigitalOcean Spaces)
+- Binary format for efficient on-disk storage
+
+Configure storage with `--data-dir`:
+```bash
+geode serve --data-dir /var/lib/geode
+```
+
+### CLI Commands
+
+Geode uses a unified binary with these commands:
+
+| Command | Description |
+|---------|-------------|
+| `serve` | Start the database server |
+| `query` | Execute a GQL query |
+| `shell` | Interactive REPL |
+| `lsp` | Language Server Protocol server |
+| `mcp` | Model Context Protocol server |
+| `auth` | Authentication (login, logout, token) |
+| `backup` / `restore` | Database backup and restore |
+| `migrate` | Database migrations |
+| `user` / `role` / `policy` | User and role management |
+| `grant` / `revoke` | Permission management |
+| `fle` | Field-Level Encryption |
+| `storage` | Storage engine management |
+| `session` | Session management |
+| `authn` | Auth provider configuration |
+| `apikey` | API key management |
 
 ### LSP Features
 Once loaded, the LSP server automatically starts when you open a supported file:
@@ -155,6 +244,19 @@ Completions are triggered by:
 - Typing `.` after a variable
 - Typing `:` for label syntax
 - Typing `$` for parameter names
+
+### Server Connection Issues
+
+1. Verify the server is running:
+   ```bash
+   geode serve
+   ```
+
+2. Check the transport and port:
+   - QUIC: default `0.0.0.0:3141`
+   - gRPC: requires `--listen-grpc 0.0.0.0:50051`
+
+3. For TLS issues, try auto-generated certificates (default) or specify `--cert` and `--key`
 
 ## Development
 
