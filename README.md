@@ -73,17 +73,26 @@ Pre-built prompts for common graph operations:
    export PATH="$PWD/zig-out/bin:$PATH"
    ```
 
-### Test Plugin Locally
+### Install via Marketplace
+
+The geode monorepo includes a marketplace manifest at `.claude-plugin/marketplace.json`.
 
 ```bash
-# Load plugin for testing (from geode repo root)
-claude --plugin-dir ./geode-claude-plugin
+# From the parent of the geode monorepo (e.g. ~/src/gl/devnw/codepros)
+claude plugin marketplace add ./geode
+claude plugin install geode@geode-marketplace --scope user
 ```
 
-### Install from Marketplace (when published)
+Scope options:
+- `--scope user` - available in all projects (`~/.claude/settings.json`)
+- `--scope project` - shared with team (`.claude/settings.json`)
+- `--scope local` - this machine only (`.claude/settings.local.json`)
+
+### Test Plugin Locally (session only)
 
 ```bash
-claude /plugin install geode@<marketplace-name>
+# Load plugin for a single session (from geode repo root)
+claude --plugin-dir ./geode-claude-plugin
 ```
 
 ## Usage
