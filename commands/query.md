@@ -4,84 +4,93 @@ description: Help write or debug a GQL query
 
 # GQL Query Assistant
 
-Help the user write, debug, or optimize their GQL query.
+Help the user write, debug, or optimize a GQL query.
 
 User's request: "$ARGUMENTS"
 
-When helping with queries:
+## Triage
 
-1. **If writing a new query**: Ask clarifying questions about:
-   - What data they want to retrieve
-   - Node labels and relationship types
-   - Filter conditions needed
-   - Sorting and pagination requirements
-
-2. **If debugging**: Look for common issues:
-   - Missing RETURN clause
-   - Incorrect pattern syntax (parentheses, brackets)
-   - Type mismatches in WHERE conditions
-   - Missing quotes around strings
-   - Variable scope issues (variables defined in MATCH used in RETURN)
-   - Transaction not committed (missing COMMIT after BEGIN)
-
-3. **If optimizing**: Suggest improvements:
-   - Add indexes for frequently filtered properties
-   - Use LIMIT to reduce result sets
-   - Filter early with WHERE
-   - Use parameters ($param) instead of inline values
-   - Use EXPLAIN to inspect the query plan
-   - Use PROFILE to measure per-operator performance
+1. **Writing a new query**: ask about
+   - desired output and shape
+   - node labels / relationship types
+   - filters
+   - sort + pagination
+2. **Debugging**: scan for
+   - missing `RETURN`
+   - bracket / parenthesis mismatch
+   - type mismatch in `WHERE`
+   - missing string quotes
+   - variables defined in `MATCH` but unused / shadowed in `RETURN`
+   - unclosed `BEGIN` (no `COMMIT` / `ROLLBACK`)
+3. **Optimizing**:
+   - add indexes for hot filter properties
+   - filter early (`WHERE` before `WITH`)
+   - use parameters (`$param`) instead of inline values
+   - `EXPLAIN` for the logical plan
+   - `PROFILE` for per-operator timing + memory
 
 ## Connecting to Geode
 
-Clients connect using a DSN (Data Source Name) connection string:
+Clients use a unified DSN format:
 
-```
-quic://localhost:3141                            # QUIC transport (recommended)
-grpc://localhost:50051                           # gRPC transport
-quic://user:pass@geode.example.com:3141          # With authentication
-quic://localhost:3141?page_size=500&tls=1         # With options
+```text
+quic://localhost:3141                        # QUIC, default
+grpc://localhost:50051                       # gRPC
+quic://user:pass@geode.example.com:3141      # With credentials
+quic://localhost:3141?page_size=500          # With options
+localhost:3141                               # Bare host:port — defaults to QUIC
 ```
 
 | Protocol | Default Port | TLS | Notes |
-|----------|-------------|-----|-------|
-| QUIC | 3141 | Required (TLS 1.3) | **Recommended** - high-performance UDP transport |
-| gRPC | 50051 | Optional | Standard HTTP/2 based |
+|----------|--------------|-----|-------|
+| QUIC | 3141 | Required (TLS 1.3) | High-performance UDP transport |
+| gRPC | 50051 | Optional | Standard HTTP/2 |
 
-## Transaction Support
+## CLI Query Flags (`geode query`)
 
-Geode supports full ACID transactions with Serializable Snapshot Isolation (SSI):
+```text
+--dsn <dsn>                Connection DSN (overrides --server / --grpc)
+--server <addr:port>       Server address (default 127.0.0.1:3141)
+--grpc                     Use gRPC transport
+-g, --graph <name>         Auto-prepend USE GRAPH <name>
+-f, --file <path>          Execute statements from a file
+--format <fmt>             json | table | csv | dot (default: json)
+--param <name> <value>     Add a query parameter (JSON literal); repeatable
+--page-size <n>            Result page size (default: 128)
+--timeout <secs>           Connection timeout (default: 30)
+--retry <count>            Retry attempts on failure (default: 0)
+--begin / --commit / --rollback  Transaction control
+-U, --user / -P, --password      Authenticate with username + password
+--no-saved-session         Don't auto-load saved session token
+--insecure-tls-skip-verify Skip TLS verification (development only)
+--ca-cert / --client-cert / --client-key  mTLS material
+```
+
+## Transactions
 
 ```gql
 BEGIN
 -- multiple statements here
-COMMIT    -- or ROLLBACK to abort
+COMMIT      -- or ROLLBACK to abort
 ```
 
 ## Query Analysis
 
-Use `EXPLAIN` to see the logical query plan without executing:
 ```gql
 EXPLAIN
 MATCH (p:Person)-[:KNOWS]->(f:Person)
 RETURN p.name, f.name
 ```
 
-Use `PROFILE` to execute and get per-operator performance metrics:
-```gql
-PROFILE
-MATCH (p:Person)-[:KNOWS]->(f:Person)
-RETURN p.name, f.name
-```
+`PROFILE` runs the query and returns per-operator metrics: rows in/out, wall clock, allocation, spill.
 
-PROFILE returns metrics including: rows consumed/produced, wall clock time, memory allocation, and spill information per operator.
-
-## GQL vs Cypher differences
+## GQL vs Cypher Differences
 
 Geode implements ISO GQL (ISO/IEC 39075:2024) with Cypher compatibility:
-- Both `MATCH`, `CREATE`, `RETURN` work the same
-- Use `TRUE`/`FALSE` (not `true`/`false`)
-- String concatenation: `||` operator
-- Comments: `//` for line, `/* */` for block
+
+- `MATCH`, `CREATE`, `RETURN` — same as Cypher
+- Use `TRUE` / `FALSE` (uppercase)
+- String concatenation with `||`
+- Comments: `//`, `/* */`, plus `--` (Geode extension)
 
 Provide working code examples and explain the syntax.
