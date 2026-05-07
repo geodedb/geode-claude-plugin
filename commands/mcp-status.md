@@ -4,109 +4,75 @@ description: Check Geode MCP server status and available tools
 
 # Geode MCP Status Check
 
-Check if the Geode MCP (Model Context Protocol) server is properly installed and accessible.
+Verify that the Geode MCP (Model Context Protocol) server is installed and accessible.
 
-Run this command to verify MCP support:
 ```bash
 geode mcp --help
 ```
 
-If geode is not found, provide installation instructions:
-
-1. Build from source:
-   ```bash
-   git clone https://gitlab.com/devnw/codepros/geode/geode.git
-   cd geode && make build
-   export PATH="$PWD/zig-out/bin:$PATH"
-   ```
-
-2. Verify installation:
-   ```bash
-   geode --version
-   geode mcp --help
-   ```
-
-## MCP Tools Available
-
-The Geode MCP server provides these tools to Claude:
-
-| Tool | Description |
-|------|-------------|
-| `query` | Execute GQL queries against Geode |
-| `schema` | Get graph schema information |
-| `explain` | Get query execution plans |
-| `catalogs` | List available catalogs |
-| `graphs` | List available graphs |
-| `validate` | Validate GQL query syntax |
-| `complete` | Get code completions for GQL |
-| `hover` | Get hover information for tokens |
-| `diagnostics` | Get diagnostics for queries |
-
-## MCP Resources Available
-
-| Resource URI | Description |
-|--------------|-------------|
-| `geode://default/default/schema` | Graph schema |
-| `geode://default/default/stats` | Database statistics |
-| `geode://config` | Server configuration |
-
-## MCP Prompts Available
-
-| Prompt | Description |
-|--------|-------------|
-| `find_nodes` | Generate queries to find nodes |
-| `find_relationships` | Generate relationship search queries |
-| `create_node` | Generate node creation queries |
-| `create_relationship` | Generate relationship creation queries |
-| `shortest_path` | Generate shortest path queries |
-| `graph_analysis` | Generate graph analysis queries |
-| `pattern_match` | Generate pattern matching queries |
+If `geode` is missing or stale, see the [README](../README.md#installation).
 
 ## Starting the MCP Server
 
-The MCP server can run in two modes:
+`geode mcp` (alias `geode mcp serve`) supports two transports:
 
 ```bash
-# stdio mode (default, for Claude Code integration)
-geode mcp serve
+# stdio (default for Claude Code, Claude Desktop, etc.)
+geode mcp --stdio
 
-# HTTP mode (for remote access)
-geode mcp serve --http --port 8080
+# HTTP transport on a fixed port
+geode mcp serve --port 8080
 
-# With custom Geode QUIC endpoint
-geode mcp serve -e quic://localhost:3141
-
-# With custom Geode gRPC endpoint
-geode mcp serve -e grpc://localhost:50051
+# Connect to a non-default Geode endpoint (host:port — no scheme)
+geode mcp -e localhost:3141 --stdio
+geode mcp serve --port 8080 -e geode.example.com:3141
 ```
 
-## Transport Configuration
+> When `--stdio` is selected, **stdout is reserved for JSON-RPC**. All log output goes to stderr.
 
-The MCP server connects to a running Geode database server. Geode supports two transport protocols:
+## MCP Tools (9)
 
-| Protocol | Scheme | Default Port | TLS | Description |
-|----------|--------|-------------|-----|-------------|
-| QUIC | `quic://` | 3141 | Required (TLS 1.3) | **Recommended** - high-performance UDP transport |
-| gRPC | `grpc://` | 50051 | Optional | Standard HTTP/2 based |
+| Tool | Description |
+|------|-------------|
+| `query` | Execute a GQL query against Geode |
+| `schema` | Get graph schema (labels, relationship types, properties) |
+| `explain` | Logical execution plan for a query |
+| `catalogs` | List available catalogs |
+| `graphs` | List available graphs in a catalog |
+| `validate` | Validate GQL syntax + Geode extensions (no server needed) |
+| `complete` | GQL completions at a cursor position |
+| `hover` | Hover documentation for a GQL element |
+| `diagnostics` | Full diagnostics for a GQL document (alias of `validate`) |
 
-### Starting the Geode Server
+## MCP Resources (3)
 
-```bash
-# Default: QUIC on port 3141 (TLS auto-generated)
-geode serve
+| Resource URI | Description |
+|--------------|-------------|
+| `geode://default/default/schema` | Current graph schema |
+| `geode://default/default/stats`  | Database statistics |
+| `geode://config`                  | Server configuration / version |
 
-# Explicit QUIC address
-geode serve --listen 0.0.0.0:3141
+## MCP Resource Templates (4)
 
-# Enable both QUIC and gRPC
-geode serve --listen 0.0.0.0:3141 --listen-grpc 0.0.0.0:50051
-
-# With custom TLS certificates
-geode serve --cert /path/to/server.crt --key /path/to/server.key
-
-# With persistent storage
-geode serve --data-dir /var/lib/geode
-
-# With config file
-geode serve --config /path/to/config.yaml
+```text
+geode://{catalog}/{graph}/schema
+geode://{catalog}/{graph}/stats
+geode://{catalog}/{graph}/node/{label}
+geode://{catalog}/{graph}/relationship/{type}
 ```
+
+## MCP Prompts (7)
+
+| Prompt | Description |
+|--------|-------------|
+| `find_nodes` | Generate queries to find nodes by label/properties |
+| `find_relationships` | Generate relationship search queries |
+| `create_node` | Generate node creation queries |
+| `create_relationship` | Generate relationship creation queries |
+| `shortest_path` | Generate shortest-path queries |
+| `graph_analysis` | Generate analytics queries (degree, centrality, …) |
+| `pattern_match` | Generate pattern-matching queries |
+
+## Authentication
+
+The MCP server enforces authentication by default (bearer token) so tool calls are never anonymous. Disable only for local development by setting the server's `auth_mode` to `none` (see `geode mcp --help`).
