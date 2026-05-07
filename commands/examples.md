@@ -35,7 +35,7 @@ RETURN p.name, friend.name
 ### Variable-Length Paths
 
 ```gql
-MATCH (a:Person)-[:KNOWS*1..3]->(b:Person)
+MATCH path = (a:Person)-[:KNOWS*1..3]->(b:Person)
 WHERE a.name = 'Alice'
 RETURN b.name, length(path) AS distance
 ```
