@@ -38,7 +38,7 @@ Geode installation options:
     cd geode && make build
     export PATH="$PWD/zig-out/bin:$PATH"
 
-After installation, ensure 'geode' is in your PATH and reports >= v$MIN_VERSION.
+After installation, ensure 'geode' is in your PATH and reports >= v0.5.11.
 EOF
 }
 
