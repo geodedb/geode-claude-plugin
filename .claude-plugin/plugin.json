@@ -1,10 +1,21 @@
 {
   "name": "geode",
-  "description": "Geode GQL/ISO 39075 Language Server and MCP tools for property graph queries",
-  "version": "2.0.0",
+  "description": "Geode GQL/ISO 39075 Language Server, MCP tools, agents, and skills for property graph development",
+  "version": "2.1.0",
   "author": {
-    "name": "Developer Network"
+    "name": "Developer Network",
+    "url": "https://gitlab.com/devnw/codepros/geode"
   },
+  "homepage": "https://geodedb.com",
   "repository": "https://gitlab.com/devnw/codepros/geode/geode-claude-plugin",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "keywords": [
+    "geode",
+    "gql",
+    "graph-database",
+    "iso-39075",
+    "cypher",
+    "lsp",
+    "mcp"
+  ]
 }
