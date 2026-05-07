@@ -4,38 +4,51 @@ description: Quick reference for GQL syntax and keywords
 
 # GQL Syntax Reference
 
-Provide a quick reference for GQL syntax. Focus on: "$ARGUMENTS"
+Provide a quick reference for GQL (ISO/IEC 39075:2024). Focus on: "$ARGUMENTS"
 
-If no specific topic, provide an overview:
+If no specific topic is provided, give the overview below.
 
 ## Keywords
 
 ### Query Clauses
-- `MATCH` - Find patterns in the graph
-- `WHERE` - Filter results
-- `RETURN` - Specify output
-- `ORDER BY` - Sort results (ASC/DESC)
-- `LIMIT` / `OFFSET` - Pagination
-- `WITH` - Chain query parts
+
+- `MATCH` — find patterns in the graph
+- `WHERE` — filter results
+- `RETURN` — specify output
+- `ORDER BY` — sort (`ASC`/`DESC`)
+- `LIMIT` / `OFFSET` — pagination
+- `WITH` — chain query parts
 
 ### Modification
-- `CREATE` - Create nodes/relationships
-- `MERGE` - Create if not exists
-- `SET` - Update properties
-- `DELETE` / `DETACH DELETE` - Remove data
+
+- `CREATE` — create nodes / relationships
+- `MERGE` — create if not exists
+- `SET` — update properties
+- `DELETE` / `DETACH DELETE` — remove data
 
 ### Aggregation
-- `GROUP BY` - Group results
-- `HAVING` - Filter groups
 
-### Transaction Control
-- `BEGIN` - Start a transaction
-- `COMMIT` - Commit the current transaction
-- `ROLLBACK` - Rollback the current transaction
+- `GROUP BY` / `HAVING`
+
+### Transactions (per session)
+
+- `BEGIN`
+- `COMMIT`
+- `ROLLBACK`
 
 ### Query Analysis
-- `EXPLAIN` - Show logical query execution plan
-- `PROFILE` - Execute and show per-operator performance metrics
+
+- `EXPLAIN` — logical operator tree
+- `PROFILE` — execute and return per-operator metrics
+
+### Comments
+
+```gql
+// single-line
+/* block
+   comment */
+-- single-line (Geode extension)
+```
 
 ## Data Types
 
@@ -52,61 +65,70 @@ If no specific topic, provide an overview:
 
 ## Pattern Syntax
 
-```
+```text
 (variable:Label {property: value})  -- Node
 -[:RELATIONSHIP_TYPE]->             -- Directed relationship
 <-[:TYPE]-                          -- Reverse direction
 -[:TYPE]-                           -- Undirected
--[:TYPE*1..3]->                     -- Variable length path
+-[:TYPE*1..3]->                     -- Variable-length path
 ```
 
 ## Functions
 
 ### Aggregation
+
 `count()`, `sum()`, `avg()`, `min()`, `max()`, `collect()`
 
 ### String
+
 `toLower()`, `toUpper()`, `trim()`, `substring()`, `replace()`
 
 ### List
+
 `size()`, `head()`, `tail()`, `reverse()`, `range()`
 
 ### Math
+
 `abs()`, `ceil()`, `floor()`, `round()`, `sqrt()`
 
-### Vector (Geode)
-`distance()`, `similarity()`, `cosine()`, `euclidean()`
+### Vector (Geode extension)
+
+`distance(vec, target, metric)`, `similarity()`, `cosine()`, `euclidean()`
+Supported metrics: `'L2'`, `'cosine'`, `'dot'`, `'manhattan'`, `'chebyshev'`, `'hamming'`.
 
 ## Wire Protocol Messages
 
-### Client Messages
+### Client → Server
+
 | Message | Purpose |
 |---------|---------|
-| `HELLO` | Client greeting (name, version, conformance) |
-| `RUN_GQL` | Submit GQL query with parameters |
+| `HELLO` | Greeting (name, version, conformance) |
+| `RUN_GQL` | Submit GQL with parameters |
 | `PULL` | Request next page of results |
 | `BEGIN` / `COMMIT` / `ROLLBACK` | Transaction demarcation |
 
-### Server Response Types
+### Server → Client
+
 | Response | Description |
 |----------|-------------|
-| `SCHEMA` | Column descriptors (always first for new statement) |
-| `BINDINGS` | Result rows with ordering and pagination metadata |
+| `SCHEMA` | Column descriptors (always first for a new statement) |
+| `BINDINGS` | Result rows + ordering / pagination metadata |
 | `EXPLAIN` | Logical operator array (JSON) |
 | `PROFILE` | Per-operator metrics (JSON) |
-| `ERROR` | Error details with ISO/IEC 39075 status codes |
+| `ERROR` | ISO/IEC 39075 status code + detail |
 
 ## Transport
 
-All messages are transmitted over **QUIC+TLS** (default port 3141) or **gRPC** (port 50051). QUIC transport uses TLS 1.3 with stream multiplexing and 0-RTT resumption.
+All messages travel over **QUIC+TLS 1.3** (default port 3141) or **gRPC** (port 50051). QUIC adds stream multiplexing and 0-RTT resumption.
 
 ## DSN Connection Strings
 
-```
+```text
 quic://localhost:3141                        # QUIC (recommended)
 grpc://localhost:50051                       # gRPC
 quic://user:pass@localhost:3141              # With auth
 quic://localhost:3141?page_size=500          # With options
+localhost:3141                               # Scheme-less (defaults to QUIC)
 ```
 
-Provide detailed explanations based on user's specific question.
+Provide detailed explanations based on the user's specific question.
