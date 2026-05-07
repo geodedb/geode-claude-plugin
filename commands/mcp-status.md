@@ -75,4 +75,4 @@ geode://{catalog}/{graph}/relationship/{type}
 
 ## Authentication
 
-The MCP server enforces authentication by default (bearer token) so tool calls are never anonymous. Disable only for local development by setting the server's `auth_mode` to `none` (see `geode mcp --help`).
+The MCP server enforces authentication by default (bearer token) so tool calls are never anonymous. Disable only for local development with `geode mcp --no-auth` (debug builds only — release builds reject the flag and require a configured token).
