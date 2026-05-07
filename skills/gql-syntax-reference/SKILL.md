@@ -83,7 +83,7 @@ distance(vec, target, metric)
 similarity(vec, target, metric)        // 1 - distance
 ```
 
-Metrics: `'L2'`, `'cosine'`, `'dot'`, `'manhattan'`, `'chebyshev'`, `'hamming'`.
+Metrics: `'L2'`, `'cosine'`, `'dot'` (alias `'dot_product'`).
 
 ## EXPLAIN / PROFILE
 

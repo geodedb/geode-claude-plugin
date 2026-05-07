@@ -94,7 +94,7 @@ If no specific topic is provided, give the overview below.
 ### Vector (Geode extension)
 
 `distance(vec, target, metric)`, `similarity()`, `cosine()`, `euclidean()`
-Supported metrics: `'L2'`, `'cosine'`, `'dot'`, `'manhattan'`, `'chebyshev'`, `'hamming'`.
+Supported metrics: `'L2'`, `'cosine'`, `'dot'` (alias `'dot_product'`).
 
 ## Wire Protocol Messages
 
