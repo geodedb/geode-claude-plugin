@@ -1,6 +1,6 @@
 # Requirements
 
-> **Last Updated:** 2026-01-26
+> **Last Updated:** 2026-05-06
 >
 > This is a flatfile mirror of requirements tracked in GitLab. **GitLab is the source of truth.**
 >
@@ -66,6 +66,28 @@ The following features are documented in README.md and implemented via configura
 | test-structure | test | Implemented |
 | test-hooks | test | Implemented |
 | test-integration | integration | Implemented |
+
+### Agents
+
+| Agent | Status | File |
+|-------|--------|------|
+| gql-query-writer | Implemented | agents/gql-query-writer.md |
+| gql-debugger | Implemented | agents/gql-debugger.md |
+| graph-schema-designer | Implemented | agents/graph-schema-designer.md |
+
+### Skills
+
+| Skill | Status | Path |
+|-------|--------|------|
+| gql-syntax-reference | Implemented | skills/gql-syntax-reference/SKILL.md |
+| gql-query-patterns | Implemented | skills/gql-query-patterns/SKILL.md |
+| geode-mcp-tools | Implemented | skills/geode-mcp-tools/SKILL.md |
+
+### Marketplace
+
+| Item | Status | Path |
+|------|--------|------|
+| geode marketplace manifest | Implemented | ../geode/.claude-plugin/marketplace.json |
 
 ## Gap Status
 
