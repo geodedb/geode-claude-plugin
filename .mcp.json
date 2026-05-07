@@ -2,9 +2,9 @@
   "mcpServers": {
     "geode": {
       "command": "geode",
-      "args": ["mcp", "serve"],
+      "args": ["mcp", "--stdio"],
       "env": {},
-      "description": "Geode GQL graph database - query, schema, and graph analysis tools"
+      "description": "Geode GQL graph database — query, schema, validate, complete, hover, diagnostics, explain, catalogs, graphs"
     }
   }
 }
