@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Removed references to non-existent `session` and `authn` top-level subcommands.
+- Removed unverifiable references to `session` and `authn` top-level subcommands; they are dispatched but undocumented in `geode --help` and were not validated against `geode v0.5.11`.
 - Removed false claim that `mcp serve` accepts `--http` and DSN-style endpoint URLs.
 - Corrected `geode serve --log-level` choices to `debug|info|warn|error`.
 
