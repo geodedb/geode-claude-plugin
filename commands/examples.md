@@ -11,12 +11,14 @@ If no specific topic is provided, show these common patterns:
 ## Basic Queries
 
 ### Match and Return
+
 ```gql
 MATCH (n:Person)
 RETURN n.name, n.age
 ```
 
 ### Filter with WHERE
+
 ```gql
 MATCH (p:Person)
 WHERE p.age > 25 AND p.city = 'Seattle'
@@ -24,12 +26,14 @@ RETURN p.name
 ```
 
 ### Relationships
+
 ```gql
 MATCH (p:Person)-[:KNOWS]->(friend:Person)
 RETURN p.name, friend.name
 ```
 
 ### Variable-Length Paths
+
 ```gql
 MATCH (a:Person)-[:KNOWS*1..3]->(b:Person)
 WHERE a.name = 'Alice'
@@ -46,6 +50,7 @@ LIMIT 10
 ```
 
 ### GROUP BY with HAVING
+
 ```gql
 MATCH (p:Person)
 RETURN p.city, avg(p.age) AS avg_age, count(*) AS cnt
@@ -56,12 +61,52 @@ ORDER BY avg_age DESC
 
 ## Vector Search (Geode-specific)
 
+### Vector Search by Cosine Similarity
+
+```gql
+MATCH (doc:Document)
+WHERE distance(doc.embedding, $query_vector, 'cosine') < 0.2
+RETURN doc.title, doc.content
+ORDER BY distance(doc.embedding, $query_vector, 'cosine')
+LIMIT 5
+```
+
+### Vector Search by L2 Distance
+
 ```gql
 MATCH (doc:Document)
 WHERE distance(doc.embedding, $query_vector, 'L2') < 0.5
 RETURN doc.title, doc.content
 ORDER BY distance(doc.embedding, $query_vector, 'L2')
 LIMIT 5
+```
+
+## Authenticated Connection (CLI)
+
+```bash
+# DSN with embedded credentials
+geode query --dsn quic://alice:s3cret@graph.example.com:3141 \
+  "MATCH (n:Person) RETURN n.name LIMIT 5"
+
+# Reusable saved session
+geode auth login -U alice --save-session
+geode query "MATCH (n) RETURN count(n)"
+```
+
+## Migrations and Backup
+
+```bash
+# Create + sign a migration
+geode migrate create add_unique_email_index
+geode migrate sign migrations/2026_05_06_add_unique_email_index.gql
+
+# Apply pending migrations
+geode migrate up
+
+# Backup + restore
+geode backup create --output ./backup.gz
+geode backup list
+geode restore ./backup.gz --yes
 ```
 
 ## Create Data
@@ -72,6 +117,7 @@ RETURN p
 ```
 
 ### Create Relationships
+
 ```gql
 MATCH (a:Person {name: 'Alice'}), (b:Person {name: 'Bob'})
 CREATE (a)-[:KNOWS {since: 2024}]->(b)
@@ -103,6 +149,7 @@ To rollback: `ROLLBACK` instead of `COMMIT`.
 ## Query Analysis
 
 ### Explain a Query Plan
+
 ```gql
 EXPLAIN
 MATCH (p:Person)-[:KNOWS]->(f:Person)
@@ -113,6 +160,7 @@ RETURN p.name, f.name
 Returns the logical operator tree showing how the query will be executed.
 
 ### Profile Query Performance
+
 ```gql
 PROFILE
 MATCH (p:Person)-[:KNOWS]->(f:Person)
