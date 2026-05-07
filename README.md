@@ -31,6 +31,7 @@ The MCP server provides Claude with direct access to Geode:
 ### MCP Prompts
 
 Pre-built prompts for common graph operations:
+
 - `find_nodes` - Generate queries to find nodes
 - `find_relationships` - Generate relationship search queries
 - `create_node` / `create_relationship` - Generate creation queries
@@ -63,35 +64,67 @@ Pre-built prompts for common graph operations:
 
 ## Installation
 
-### Prerequisites
+### Prerequisites — install `geode` v0.5.11+
 
-1. **Geode** must be installed and available in your PATH:
-   ```bash
-   # Build from source
-   git clone https://gitlab.com/devnw/codepros/geode/geode.git
-   cd geode && make build
-   export PATH="$PWD/zig-out/bin:$PATH"
-   ```
+The plugin only configures Claude Code; the actual GQL functionality lives in the `geode` binary. Pick **one** install path.
 
-### Install via Marketplace
-
-The geode monorepo includes a marketplace manifest at `.claude-plugin/marketplace.json`.
+#### APT (Debian/Ubuntu)
 
 ```bash
-# From the parent of the geode monorepo (e.g. ~/src/gl/devnw/codepros)
-claude plugin marketplace add ./geode
-claude plugin install geode@geode-marketplace --scope user
+curl -fsSL https://apt.geodedb.com/geodedb-keyring.gpg \
+  | sudo tee /usr/share/keyrings/geodedb-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/geodedb-archive-keyring.gpg] https://apt.geodedb.com/ stable main" \
+  | sudo tee /etc/apt/sources.list.d/geodedb.list
+sudo apt update && sudo apt install geode
 ```
 
-Scope options:
-- `--scope user` - available in all projects (`~/.claude/settings.json`)
-- `--scope project` - shared with team (`.claude/settings.json`)
-- `--scope local` - this machine only (`.claude/settings.local.json`)
-
-### Test Plugin Locally (session only)
+#### Nix
 
 ```bash
-# Load plugin for a single session (from geode repo root)
+nix run github:codeprosorg/geode -- --version
+```
+
+#### Docker
+
+```bash
+docker run --rm codeprosorg/geode:latest --version
+docker run -p 3141:3141/udp codeprosorg/geode:latest serve
+```
+
+#### Build from Source (Zig 0.16.0+)
+
+```bash
+git clone https://gitlab.com/devnw/codepros/geode/geode.git
+cd geode && make build
+export PATH="$PWD/zig-out/bin:$PATH"
+```
+
+Verify:
+
+```bash
+geode --version    # must report v0.5.11 or newer
+```
+
+### Install the plugin (Claude Code)
+
+The `geode` monorepo ships a marketplace manifest at `.claude-plugin/marketplace.json` that lists this plugin.
+
+```bash
+# From the parent of the geode monorepo
+claude plugin marketplace add ./geode
+claude plugin install geode@geode --scope user
+```
+
+Scopes:
+
+- `--scope user` — all projects (`~/.claude/settings.json`)
+- `--scope project` — shared with the team (`.claude/settings.json`)
+- `--scope local` — this machine only (`.claude/settings.local.json`)
+
+### Test the plugin without installing
+
+```bash
+# From the geode monorepo root
 claude --plugin-dir ./geode-claude-plugin
 ```
 
@@ -135,7 +168,7 @@ QUIC is the default and recommended transport. It provides built-in TLS 1.3, str
 
 All client libraries use a unified DSN (Data Source Name) format:
 
-```
+```text
 quic://localhost:3141                            # QUIC (recommended)
 grpc://localhost:50051                           # gRPC
 quic://user:pass@localhost:3141                  # With authentication
@@ -146,6 +179,7 @@ localhost:3141                                   # Scheme-less (defaults to QUIC
 ### Configuration Files
 
 Geode searches for config files in order:
+
 1. `.geode/config.{yaml|toml|json}` (project config)
 2. `~/.config/geode/config.*` (user config)
 
@@ -154,12 +188,14 @@ CLI flags override config file values, which override defaults.
 ### Storage
 
 Geode uses MVCC-based persistent storage with:
+
 - **Write-Ahead Logging (WAL)** for durability
 - **Transparent Data Encryption (TDE)** with KMS support
 - **S3 cloud backup** integration (S3, DigitalOcean Spaces)
 - Binary format for efficient on-disk storage
 
 Configure storage with `--data-dir`:
+
 ```bash
 geode serve --data-dir /var/lib/geode
 ```
@@ -170,31 +206,36 @@ Geode uses a unified binary with these commands:
 
 | Command | Description |
 |---------|-------------|
-| `serve` | Start the database server |
-| `query` | Execute a GQL query |
-| `shell` | Interactive REPL |
-| `lsp` | Language Server Protocol server |
-| `mcp` | Model Context Protocol server |
-| `auth` | Authentication (login, logout, token) |
-| `backup` / `restore` | Database backup and restore |
-| `migrate` | Database migrations |
-| `user` / `role` / `policy` | User and role management |
+| `serve` | Start the Geode database server |
+| `query` | Execute a GQL query (one-shot) |
+| `shell` | Interactive GQL REPL |
+| `lsp` | Language Server Protocol server (stdio) |
+| `mcp` | Model Context Protocol server (stdio or HTTP) |
+| `auth` | Authentication: `login` / `logout` / `token` / `init` / `reseal` / `verify` |
+| `login` | Top-level alias for `auth login` |
+| `logout` | Top-level alias for `auth logout` |
+| `user` | User management |
+| `role` | Role management |
+| `policy` | Row-level-security policy management |
 | `grant` / `revoke` | Permission management |
-| `fle` | Field-Level Encryption |
-| `storage` | Storage engine management |
-| `session` | Session management |
-| `authn` | Auth provider configuration |
+| `backup` / `restore` | Database backup and restore |
+| `migrate` | Migrations: `status` / `up` / `create` / `sign` |
+| `fle` | Field-Level Encryption management |
+| `storage` | Storage engine maintenance and verification |
 | `apikey` | API key management |
+| `completion` | Generate shell completion scripts (bash/zsh/fish/powershell) |
 
 ### LSP Features
+
 Once loaded, the LSP server automatically starts when you open a supported file:
+
 - Red squiggles for syntax errors
 - Hover tooltips with documentation
 - Completion suggestions as you type
 
 ### Slash Commands
 
-```
+```bash
 /geode:status                  # Check if LSP and MCP are working
 /geode:mcp-status              # Detailed MCP tools and resources
 /geode:examples                # Show common GQL patterns
@@ -202,6 +243,58 @@ Once loaded, the LSP server automatically starts when you open a supported file:
 /geode:syntax                  # GQL syntax quick reference
 /geode:syntax aggregation      # Aggregation function reference
 /geode:query                   # Help write a new query
+```
+
+## Authentication & Transport
+
+### DSN
+
+All clients (CLI, MCP, drivers) use a unified DSN:
+
+```text
+quic://[user:pass@]host[:port][?key=value]   # default scheme
+grpc://[user:pass@]host[:port][?key=value]   # gRPC
+host[:port]                                  # bare host:port → QUIC
+```
+
+| Protocol | Default Port | TLS                  |
+|----------|--------------|----------------------|
+| QUIC     | 3141         | Required (TLS 1.3)   |
+| gRPC     | 50051        | Optional             |
+
+### Authentication
+
+```bash
+# Save a session for repeated use
+geode auth login -U alice --save-session
+geode auth token             # print saved credentials JSON
+geode auth logout
+
+# Offline (operates directly on the data dir)
+geode auth init    --data-dir ./data
+geode auth verify  --data-dir ./data
+geode auth reseal  --data-dir ./data
+```
+
+### Mutual TLS
+
+Provide enterprise PKI material on any client subcommand:
+
+```text
+--ca-cert /etc/ssl/ca.crt
+--client-cert /etc/ssl/client.crt
+--client-key  /etc/ssl/client.key
+```
+
+### Audit Logging
+
+Global flags (apply to any subcommand):
+
+```text
+--audit                     Enable audit logging
+--audit-file <path>         Append events to a file
+--audit-syslog <host:port>  Send events to a syslog server
+--audit-eventlog [source]   Windows Event Log (default source: Geode)
 ```
 
 ## LSP Capabilities
@@ -216,12 +309,20 @@ Once loaded, the LSP server automatically starts when you open a supported file:
 
 ## Plugin Structure
 
-```
+```text
 geode-claude-plugin/
 ├── .claude-plugin/
-│   └── plugin.json       # Plugin metadata
-├── .lsp.json             # LSP server configuration
-├── .mcp.json             # MCP server configuration
+│   └── plugin.json       # Plugin metadata (v2.1.0)
+├── .lsp.json             # LSP server config (extension → language)
+├── .mcp.json             # MCP server launch (stdio)
+├── agents/
+│   ├── gql-query-writer.md
+│   ├── gql-debugger.md
+│   └── graph-schema-designer.md
+├── skills/
+│   ├── gql-syntax-reference/SKILL.md
+│   ├── gql-query-patterns/SKILL.md
+│   └── geode-mcp-tools/SKILL.md
 ├── commands/
 │   ├── status.md         # /geode:status
 │   ├── mcp-status.md     # /geode:mcp-status
@@ -229,8 +330,12 @@ geode-claude-plugin/
 │   ├── syntax.md         # /geode:syntax
 │   └── query.md          # /geode:query
 ├── hooks/
-│   ├── hooks.json        # Session start hook
-│   └── check-geode.sh    # Installation check script
+│   ├── hooks.json        # SessionStart hook config
+│   └── check-geode.sh    # Installation + version check (>= 0.5.11)
+├── docs/
+│   ├── REQUIREMENTS.md
+│   ├── GAP_ANALYSIS.md
+│   └── superpowers/plans/
 └── README.md
 ```
 
@@ -239,6 +344,7 @@ geode-claude-plugin/
 ### LSP Not Starting
 
 1. Verify geode is installed:
+
    ```bash
    geode lsp --help
    ```
@@ -250,6 +356,7 @@ geode-claude-plugin/
 ### No Completions
 
 Completions are triggered by:
+
 - Typing `.` after a variable
 - Typing `:` for label syntax
 - Typing `$` for parameter names
@@ -257,6 +364,7 @@ Completions are triggered by:
 ### Server Connection Issues
 
 1. Verify the server is running:
+
    ```bash
    geode serve
    ```
