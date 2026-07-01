@@ -101,7 +101,7 @@ validate-shell:
 # Check markdown files
 validate-markdown:
   stage: validate
-  image: node:20-alpine
+  image: node:26-alpine
   script:
     - npm install -g markdownlint-cli
     - |
