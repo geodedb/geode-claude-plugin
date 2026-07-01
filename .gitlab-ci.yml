@@ -45,7 +45,7 @@ variables:
 # Validate JSON files
 validate-json:
   stage: validate
-  image: python:3.11-slim
+  image: python:3.14-slim
   script:
     - pip install --quiet jsonschema
     - |
