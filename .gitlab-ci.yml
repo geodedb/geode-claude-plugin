@@ -26,6 +26,12 @@ include:
     inputs:
       stage: release
 
+workflow:
+  # SRE-172: a newer commit on the same ref cancels the superseded pipeline's
+  # interruptible (validation) jobs. Release/deploy jobs stay non-interruptible.
+  auto_cancel:
+    on_new_commit: interruptible
+
 default:
   tags:
     - company
@@ -44,6 +50,7 @@ variables:
 
 # Validate JSON files
 validate-json:
+  interruptible: true
   stage: validate
   image: python:3.14-slim
   script:
@@ -61,6 +68,7 @@ validate-json:
 
 # Validate MCP and LSP configuration schema (GAP-0005)
 validate-config-schema:
+  interruptible: true
   stage: validate
   image: alpine:latest
   script:
@@ -87,6 +95,7 @@ validate-config-schema:
 
 # Validate shell scripts
 validate-shell:
+  interruptible: true
   stage: validate
   image: koalaman/shellcheck-alpine:stable
   script:
@@ -100,6 +109,7 @@ validate-shell:
 
 # Check markdown files
 validate-markdown:
+  interruptible: true
   stage: validate
   image: node:26-alpine
   script:
@@ -115,6 +125,7 @@ validate-markdown:
 
 # Test plugin structure (GAP-0001: includes .mcp.json)
 test-structure:
+  interruptible: true
   stage: test
   image: alpine:latest
   script:
@@ -136,6 +147,7 @@ test-structure:
 
 # Test hook script execution
 test-hooks:
+  interruptible: true
   stage: test
   image: bash:5
   script:
@@ -154,6 +166,7 @@ test-hooks:
 # This job requires the geode binary to be available
 # Uses the geode container image from the main geode project
 test-integration:
+  interruptible: true
   stage: integration
   image: geodedb/geode:latest
   script:
