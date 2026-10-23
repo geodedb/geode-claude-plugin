@@ -1,32 +1,26 @@
 include:
   # Security scanning
-  - component: gitlab.com/devnw/ci-catalog/security-sast@v1.56.0
-    inputs:
-      stage: security
-
-  - component: gitlab.com/devnw/ci-catalog/security-dependency-scanning@v1.56.0
-    inputs:
-      stage: security
-
-  - component: gitlab.com/devnw/ci-catalog/security-secrets@v1.56.0
-    inputs:
-      stage: security
-
-  - component: gitlab.com/devnw/ci-catalog/security-gitleaks@v1.56.0
+  - component: gitlab.com/devnw/ci-catalog/security-gitleaks@aad997d40e358eeef7ec943f761498341c37c724
 
   # SBOM generation and scanning
-  - component: gitlab.com/devnw/ci-catalog/sbom-generate@v1.56.0
+  - component: gitlab.com/devnw/ci-catalog/sbom-generate@aad997d40e358eeef7ec943f761498341c37c724
 
-  - component: gitlab.com/devnw/ci-catalog/sbom-scan@v1.56.0
+  - component: gitlab.com/devnw/ci-catalog/sbom-scan@aad997d40e358eeef7ec943f761498341c37c724
     inputs:
       allow_failure: true
 
   # Release creation
-  - component: gitlab.com/devnw/ci-catalog/release-semantic@v1.56.0
+  - component: gitlab.com/devnw/ci-catalog/release-semantic@aad997d40e358eeef7ec943f761498341c37c724
     inputs:
       stage: release
 
 workflow:
+  # An open MR owns push validation; keep schedules, API, trigger,
+  # parent pipelines, tags and manual runs admitted as before.
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - when: always
   # SRE-172: a newer commit on the same ref cancels the superseded pipeline's
   # interruptible (validation) jobs. Release/deploy jobs stay non-interruptible.
   auto_cancel:
@@ -54,7 +48,6 @@ validate-json:
   stage: validate
   image: python:3.14-slim
   script:
-    - pip install --quiet jsonschema
     - |
       echo "Validating JSON files..."
       for file in $(find . -name "*.json" -type f); do
@@ -112,6 +105,11 @@ validate-markdown:
   interruptible: true
   stage: validate
   image: node:26-alpine
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  cache:
+    key: linux-node-26-markdownlint
+    paths: [.npm/]
   script:
     - npm install -g markdownlint-cli
     - |
@@ -168,7 +166,9 @@ test-hooks:
 test-integration:
   interruptible: true
   stage: integration
-  image: geodedb/geode:latest
+  image:
+    name: geodedb/geode:latest
+    entrypoint: [""]
   script:
     - |
       echo "Testing geode LSP command..."
