@@ -46,7 +46,7 @@ variables:
 validate-json:
   interruptible: true
   stage: validate
-  image: python:3.14-slim
+  image: python:3.15-slim
   script:
     - |
       echo "Validating JSON files..."
